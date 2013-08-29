@@ -1,81 +1,106 @@
 	
 
-    <?php
-    /*
-            Tinychat Spammer
-            --------------------------
-            Use of this application is at your own risk. It's developed for testing,
-            education or futher development.
-     
-            Developed by: Merijn K
-            Release: FILEHOER-8513416
-    */
-     
-     
-    namespace Tinychat;
-     
-    final class Program {
-            /*
-             * Initialise the app
-                            /*lication
-             * for Tinychat, read the XML of the room
-             * parse it, and execute some data.
-             */
-     
-            public $tinyEnvironment;
-     
-            public function __construct(Array $tinyEnvironment) {
-                    /*
-                     * Main constructor of the class.
-                     *
-                     * You need to be in CLI mode.
-                     */
-     
-                    $this->tinyEnvironment = $tinyEnvironment;
-     
-     
-                    if (!defined('STDIN')) {
-                            die('Well, thats embarresing. You need to run this script in CLI mode.');
-                    }
-     
-                    if (!is_string ($this->roomName)) {
-                            /*
-                             * A bit stupid.. Sorry, but
-                             * the room name must be a string
-                             */
-     
-                            trigger_error('The room name needs to be parsed as string format.', E_USER_ERROR);
-                    }
-     
-                    /*
-                     * Obtain the data from the tinychat room
-                     * we requested.
-                     */
-     
-                    $this->obtainXML($this->roomName);
-            }
-     
-            protected function obtainXML($roomName) {
-                    /*
-                     * TinyChat API uses XML for room handling
-                     * so, we could receive the XML
-                     * and do some actions.
-                     */
-     
-     
-                    try {
-                            /*
-                             * Lets try to get XML data from the
-                             * tinychat page.
-                             */
-     
-                            $XMLRead = new \XMLReader('http://www.tinychat.com/api/find.room/'.$roomname.'?url=tinychat.com&site=tinychat');
-                    } catch (Exception $e) {
-                            // Catch the error
-                    }
-                   
-     
-            }
-    }
-    ?>
+   <?php
 
+                                                                       
+ini_set("display_errors", "on");
+error_reporting(E_ALL);
+if(php_sapi_name() != "cli") exit;
+do new idgen(); while (true);
+ 
+class idgen {
+        public $proxies = array();
+        public $curls   = array(null, array());
+        public $write   = array();
+       
+        public function __construct() {
+                print str_repeat('-', 25) . PHP_EOL;
+                $this->Get_Proxies();
+                $this->Gen_Curls();
+                $this->Exec_Curls();
+                $this->Write_IDS();
+        }
+       
+        public function Write_IDS($write = array()) {
+                $handle = fopen(__DIR__ . DIRECTORY_SEPARATOR . "ids.txt", "a+");
+                $ids    = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . "ids.txt");
+                foreach($this->write as $i => $u) {
+                        if(!is_numeric(strpos($ids, "UserId={$i}")))
+                                $write[] = "http://xat.com/web_gear/chat/register.php?UserId={$i}&k1={$u[0]}&k2={$u[1]}&mode=1";
+                };
+                print "Found " . count($write) . " new ID(s)." . PHP_EOL;
+                if(count($write) != 0)
+                        fwrite($handle, implode(chr(10), $write) . chr(10));
+                fclose($handle);
+        }
+       
+        private function Exec_Curls($running = 0) {
+                print "Finding IDS" . PHP_EOL;
+                do curl_multi_exec($this->curls[0], $running); while (curl_multi_select($this->curls[0]) && $running > 1 && print('.'));
+                print PHP_EOL;
+                foreach($this->curls[1] as $i => &$u) {
+                        $content = curl_multi_getcontent($u);
+                        if(is_numeric(strpos($content, "UserId"))) {
+                                $k2 = $this->split($content, "&k2=");
+                                if($k2 != "0") {
+                                        $k1 = $this->split($content, 'k1=', '&');
+                                        $id = $this->split($content, 'Id=', '&');
+                                        $this->write[$this->split($content, "Id=", "&")] = array(
+                                                $this->split($content, "k1=", "&"),
+                                                $k2
+                                        );
+                                };
+                        };
+                        curl_close($u);
+                        unset($this->curls[1][$i]);
+                };
+                curl_multi_close($this->curls[0]);
+        }
+       
+        private function Gen_Curls() {
+                $this->curls[0] = curl_multi_init();
+                foreach($this->proxies as $u) {
+                        $curl = curl_init("http://xat.com/web_gear/chat/auser3.php?" . rand(1000,9999) . time());
+                        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                        curl_setopt($curl, CURLOPT_PROXY, trim($u));
+                        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+                        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
+                        curl_multi_add_handle($this->curls[0], $curl);
+                        array_push($this->curls[count($this->curls) - 1], $curl);
+                };
+        }
+       
+        private function Get_Proxies($source = "", $page = array(), $_page = array(), $style = array(), $styles = array(), $tstyles = array()) {
+                $source = file_get_contents("http://hidemyass.com/proxy-list/7");
+                preg_match("/<\/thead>(.*)<\/table>/Umis", $source, $page);
+                preg_match_all("/<tr[^>]*>(.*)<\/tr>/Umis", $page[1], $page);
+                foreach($page[1] as $_page) {
+                        preg_match("/<style>(.*)<\/style>/Umis", $_page, $style);
+                        preg_match_all("/\.(.*)\{display\:(.*)\}/Umis", $style[1], $style);
+                        foreach($style[1] as $i => $u) {
+                                $styles[$u] = $style[2][$i];
+                                if($styles[$u] == "none")
+                                        $tstyles[] = $u;
+                        };
+                        preg_match("/<\/style>(.*)<\/td>/Umis", $_page, $ip);
+                        $ip = str_replace("<span></span>", "", $ip[1]);
+                        $ip = preg_replace("/<[\w]* style=\"display:none\">[\w]*<\/[\w^>]*>/", "", $ip);
+                        if(!empty($tstyles)) {
+                                $rp = count($tstyles) == 1 ? $tstyles[0] : "(" . implode("|", $tstyles) . ")";
+                                $ip = preg_replace("/<[\w]* class=\"{$rp}\">[\w]*<\/[\w^>]*>/", "", $ip);
+                        };
+                        $ip = preg_replace("/<[^>]*>/", "", $ip);
+                        $port = explode("<td>\n", $_page);
+                        $port = substr($port[1], 0, strpos($port[1], "</td>"));
+                        $this->proxies[] = $ip . ":" . $port;
+                };
+                print "Sucessfully Loaded " . count($this->proxies) . " proxies. ." . PHP_EOL;
+        }
+       
+        private function split($content, $start, $end=null) {
+                $content = substr($content, strpos($content, $start) + strlen($start));
+                if($end) $content = substr($content, 0, strpos($content, $end));
+                return $content;
+        }
+       
+};
