@@ -1,0 +1,26 @@
+	
+
+    <?php
+            $chatroom = trim($_POST['chatroom']);
+           
+            if($chatroom != '') {
+                    if($xatBotCommand != '') {$append .= '&tools='.urlencode($xatBotCommand);}
+                    $res = file_get_contents('http://arcbots.com/api.html&tools=chatip&chatroom='.$chatroom); //Curl and post can both be used as alternatives
+                    $data = json_decode($res,true);
+                    #print_r($data);
+                    if($data['errorCode'] == 3 || $data['errorCode'] == 2) {$errorLogin = true;} else {$errorLogin = false;}
+            }
+            if($data['errorCode'] == 3) {
+                    echo $data['chatroom'].'['.$data['chatID'].'] - IP:('.$data['ip'].') Port:('.$data['port'].')<br />';
+            }
+            elseif($data['errorMessage'] != '') {echo $data['errorMessage'];}
+                    echo '
+                    <form method="post" action="">
+                            <input type="text" name="chatroom" placeholder="Chat Name/ID">
+                            <input type="submit" name="submit" value="Retreive IP/Port">
+                    </form>
+                    <br /><hr />
+                    
+            ';
+    ?>
+
