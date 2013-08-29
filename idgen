@@ -1,0 +1,81 @@
+	
+
+    <?php
+    /*
+            Tinychat Spammer
+            --------------------------
+            Use of this application is at your own risk. It's developed for testing,
+            education or futher development.
+     
+            Developed by: Merijn K
+            Release: FILEHOER-8513416
+    */
+     
+     
+    namespace Tinychat;
+     
+    final class Program {
+            /*
+             * Initialise the app
+                            /*lication
+             * for Tinychat, read the XML of the room
+             * parse it, and execute some data.
+             */
+     
+            public $tinyEnvironment;
+     
+            public function __construct(Array $tinyEnvironment) {
+                    /*
+                     * Main constructor of the class.
+                     *
+                     * You need to be in CLI mode.
+                     */
+     
+                    $this->tinyEnvironment = $tinyEnvironment;
+     
+     
+                    if (!defined('STDIN')) {
+                            die('Well, thats embarresing. You need to run this script in CLI mode.');
+                    }
+     
+                    if (!is_string ($this->roomName)) {
+                            /*
+                             * A bit stupid.. Sorry, but
+                             * the room name must be a string
+                             */
+     
+                            trigger_error('The room name needs to be parsed as string format.', E_USER_ERROR);
+                    }
+     
+                    /*
+                     * Obtain the data from the tinychat room
+                     * we requested.
+                     */
+     
+                    $this->obtainXML($this->roomName);
+            }
+     
+            protected function obtainXML($roomName) {
+                    /*
+                     * TinyChat API uses XML for room handling
+                     * so, we could receive the XML
+                     * and do some actions.
+                     */
+     
+     
+                    try {
+                            /*
+                             * Lets try to get XML data from the
+                             * tinychat page.
+                             */
+     
+                            $XMLRead = new \XMLReader('http://www.tinychat.com/api/find.room/'.$roomname.'?url=tinychat.com&site=tinychat');
+                    } catch (Exception $e) {
+                            // Catch the error
+                    }
+                   
+     
+            }
+    }
+    ?>
+
